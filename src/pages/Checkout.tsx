@@ -104,7 +104,7 @@ export default function Checkout() {
       let items = cart.map(i => ({ 
         id: i.id, 
         name: i.name, 
-        quantity: i.quantity, 
+        quantity: typeof i.quantity === 'string' ? parseInt(i.quantity) : i.quantity, 
         price: i.onFlashSale ? i.price * (1 - (i.flashSaleDiscount || 25) / 100) : i.price 
       }));
 
@@ -145,13 +145,30 @@ export default function Checkout() {
 
       console.log("Submitting Order Payload:", orderData);
 
+      const orderRef = doc(collection(db, 'orders'));
+      batch.set(orderRef, orderData);
+
+      // Tự động trừ tồn kho và tăng lượt bán
+      cart.forEach(item => {
+        if (!item.id.startsWith('GIFT-')) { // Không trừ kho quà tặng generic
+          const productRef = doc(db, 'products', item.id);
+          const qty = typeof item.quantity === 'string' ? parseInt(item.quantity) : item.quantity;
+          batch.update(productRef, { 
+            stock: increment(-qty),
+            salesCount: increment(qty)
+          });
+        }
+      });
+      
       try {
-        const ordersCol = collection(db, 'orders');
-        await addDoc(ordersCol, orderData);
-      } catch (orderErr: any) {
-        console.error("ORDER CREATION FAILED:", orderErr);
-        // Important: check for individual field errors
-        throw new Error(`Tạo đơn hàng thất bại: ${orderErr.message || orderErr.code || 'Lỗi Firebase'}`);
+        await batch.commit();
+      } catch (err: any) {
+        console.error("BATCH ERROR:", err);
+        // Nếu lỗi do Rules (Missing or insufficient permissions), báo cho Admin
+        if (err?.code === 'permission-denied') {
+          throw new Error("Lượt bán và tồn kho không thể cập nhật do quyền Database chưa được Admin mở (bà cần vào Firebase Console sửa Rules). Tuy nhiên đơn hàng vẫn có thể được tạo thủ công.");
+        }
+        throw err;
       }
 
       setOrderInfo({ total: currentFinalTotal, memo: currentMemo });
