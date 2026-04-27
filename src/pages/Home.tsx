@@ -199,6 +199,8 @@ export default function Home() {
             src="https://i.ibb.co/qFsR28Fv/Screenshot-2026-04-26-120729.png" 
             alt="3CE Banner"
             className="w-full h-auto block"
+            loading="eager"
+            fetchPriority="high"
           />
         </motion.div>
       </section>
