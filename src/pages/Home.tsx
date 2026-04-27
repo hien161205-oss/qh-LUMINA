@@ -192,20 +192,18 @@ export default function Home() {
         <>
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto mt-6 px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="relative rounded-[3rem] overflow-hidden bg-white shadow-2xl shadow-brand-100/20"
+        <div
+          className="relative rounded-[3rem] overflow-hidden bg-gray-50 shadow-2xl shadow-brand-100/20 aspect-[16/7] md:aspect-[21/9] lg:aspect-[21/7]"
         >
           <img 
             src="https://i.ibb.co/qFsR28Fv/Screenshot-2026-04-26-120729.png" 
             alt="3CE Banner"
-            className="w-full h-auto block"
+            className="w-full h-full object-cover block"
             loading="eager"
             fetchPriority="high"
+            decoding="sync"
           />
-        </motion.div>
+        </div>
       </section>
 
       {/* Flash Sale Section */}
