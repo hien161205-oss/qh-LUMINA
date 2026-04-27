@@ -176,7 +176,10 @@ export default function Home() {
                   </div>
                   <div className="space-y-2">
                     <h4 className="text-sm font-bold text-gray-800 line-clamp-2 min-h-[2.5rem] uppercase tracking-tight">{p.name}</h4>
-                    <p className="text-lg font-black text-gray-900">{formatPrice(p.price)}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-lg font-black text-gray-900">{formatPrice(p.price)}</p>
+                      <span className="text-[10px] font-bold text-gray-400">Đã bán {p.salesCount || 0}</span>
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -265,9 +268,12 @@ export default function Home() {
                         <div className="space-y-2">
                           <h4 className="text-sm font-bold text-gray-800 line-clamp-2 min-h-[2.5rem] leading-snug uppercase tracking-tight">{p.name}</h4>
                           <div className="flex flex-col">
-                            <span className="text-brand-500 font-black text-lg">
-                              {formatPrice(p.price * (1 - (p.flashSaleDiscount || 25) / 100))}
-                            </span>
+                            <div className="flex items-center justify-between">
+                              <span className="text-brand-500 font-black text-lg">
+                                {formatPrice(p.price * (1 - (p.flashSaleDiscount || 25) / 100))}
+                              </span>
+                              <span className="text-[10px] font-bold text-gray-400">Đã bán {p.salesCount || 0}</span>
+                            </div>
                             <span className="text-xs text-gray-300 line-through font-medium">{formatPrice(p.price)}</span>
                           </div>
                         </div>
@@ -346,7 +352,10 @@ export default function Home() {
                     </div>
                     <div className="space-y-2">
                       <h4 className="text-sm font-bold text-gray-800 line-clamp-2 min-h-[2.5rem] uppercase tracking-tight uppercase">{p.name}</h4>
-                      <p className="text-lg font-black text-gray-900">{formatPrice(p.price)}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-lg font-black text-gray-900">{formatPrice(p.price)}</p>
+                        <span className="text-[10px] font-bold text-gray-400">Đã bán {p.salesCount || 0}</span>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
@@ -413,7 +422,10 @@ export default function Home() {
                     </div>
                     <div className="space-y-2">
                       <h3 className="text-sm font-bold text-gray-800 line-clamp-2 min-h-[2.5rem] uppercase tracking-tight uppercase">{p.name}</h3>
-                      <p className="text-lg font-black text-gray-900">{formatPrice(p.price)}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-lg font-black text-gray-900">{formatPrice(p.price)}</p>
+                        <span className="text-[10px] font-bold text-gray-400">Đã bán {p.salesCount || 0}</span>
+                      </div>
                     </div>
                   </motion.div>
                 ))}

@@ -19,7 +19,6 @@ service cloud.firestore {
     function isAdmin() {
       return isSignedIn() && (
         (request.auth.token.email == 'nghyn5851@gmail.com') ||
-        (request.auth.token.email == 'hien161205@gmail.com') ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
       );
@@ -49,20 +48,11 @@ service cloud.firestore {
     // --- Validation Helpers ---
 
     function isValidProduct(data) {
-      return data.keys().hasAll(['name', 'price', 'imageUrl', 'category', 'stock']) &&
-             data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
-             data.price is number && data.price >= 0 &&
-             data.imageUrl is string && data.imageUrl.size() <= 1000 &&
-             (!data.keys().hasAny(['description']) || (data.description is string && data.description.size() <= 5000)) &&
-             data.category is string && data.category.size() <= 100 &&
-             data.stock is number && data.stock >= 0 &&
-             (data.keys().hasAny(['onFlashSale']) ? data.onFlashSale is bool : true) &&
-             (data.keys().hasAny(['brand']) ? data.brand is string : true) &&
-             (data.keys().hasAny(['weight']) ? data.weight is string : true) &&
-             (data.keys().hasAny(['texture']) ? data.texture is string : true) &&
-             (data.keys().hasAny(['origin']) ? data.origin is string : true) &&
-             (data.keys().hasAny(['features']) ? data.features is list : true) &&
-             (data.keys().hasAny(['gallery']) ? data.gallery is list : true);
+      // Use get() with types to handle partial updates
+      return (data.get('name', 'Product') is string) &&
+             (data.get('price', 0) is number) &&
+             (data.get('stock', 0) is number) &&
+             (data.get('salesCount', 0) is number);
     }
 
     function isValidUser(data) {
