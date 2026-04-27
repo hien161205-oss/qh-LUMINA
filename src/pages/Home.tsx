@@ -189,7 +189,7 @@ export default function Home() {
       )}
 
       {/* Banner Section - Persistent but hidden when searching */}
-      <section className={cn("max-w-7xl mx-auto mt-6 px-6", searchTerm && "opacity-0 h-0 overflow-hidden mt-0")}>
+      <section className={cn("max-w-7xl mx-auto mt-6 px-6", searchTerm ? "hidden" : "block")}>
         <div
           className="relative rounded-[2rem] overflow-hidden bg-white shadow-2xl shadow-brand-100/20"
         >

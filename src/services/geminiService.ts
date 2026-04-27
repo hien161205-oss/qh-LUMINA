@@ -1,11 +1,24 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Initialization with direct process.env access for Vite define to replace
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
+let aiInstance: any = null;
+
+function getAI() {
+  if (aiInstance) return aiInstance;
+  
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not defined");
+  }
+  
+  aiInstance = new GoogleGenAI({ apiKey });
+  return aiInstance;
+}
+
 const MODEL_NAME = "gemini-3-flash-preview";
 
 export async function getChatResponse(message: string, history: { role: string, parts: { text: string }[] }[]) {
   try {
+    const ai = getAI();
     const contents = [...history, { role: 'user', parts: [{ text: message }] }];
     
     const response = await ai.models.generateContent({
@@ -30,6 +43,6 @@ If you don't know something specific about an order, ask them to check the track
     return response.text || "Xin lỗi, hiện tại Lumina đang bận một chút. Bạn thử lại sau nhé!";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Xin lỗi, hiện tại Lumina AI đang bận một chút hoặc gặp lỗi kết nối. Bạn vui lòng thử lại sau giây lát nhé!";
+    return "Xin lỗi, hiện tại Lumina AI đang gặp lỗi kết nối (thiếu cấu hình API Key). Bạn vui lòng kiểm tra lại thiết lập Environment Variable nhé!";
   }
 }
