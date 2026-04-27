@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, serverTimestamp, doc, writeBatch, increment, getDoc, query, limit, getDocs } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, writeBatch, increment, getDoc, query, limit, getDocs, addDoc } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { useCart } from '../context/CartContext';
 import { formatPrice, cn } from '../lib/utils';
@@ -128,33 +128,40 @@ export default function Checkout() {
       const currentFinalTotal = finalTotal;
       const currentMemo = qrMemoBase;
 
-      const orderRef = doc(collection(db, 'orders'));
-      batch.set(orderRef, {
-        userId: auth.currentUser?.uid,
-        userEmail: auth.currentUser?.email,
+      const orderData = {
+        userId: auth.currentUser?.uid || 'guest',
+        userEmail: auth.currentUser?.email || 'guest@example.com',
         items,
         total: currentFinalTotal,
         paymentMethod,
-        customerInfo: formData,
+        customerInfo: {
+          name: formData.name,
+          phone: formData.phone,
+          address: formData.address,
+        },
         status: 'pending',
         createdAt: serverTimestamp()
-      });
+      };
 
-      // Tự động trừ tồn kho và tăng lượt bán
-      cart.forEach(item => {
-        const productRef = doc(db, 'products', item.id);
-        batch.update(productRef, { 
-          stock: increment(-item.quantity),
-          salesCount: increment(item.quantity)
-        });
-      });
-      
-      await batch.commit();
+      console.log("Submitting Order Payload:", orderData);
+
+      try {
+        const ordersCol = collection(db, 'orders');
+        await addDoc(ordersCol, orderData);
+      } catch (orderErr: any) {
+        console.error("ORDER CREATION FAILED:", orderErr);
+        // Important: check for individual field errors
+        throw new Error(`Tạo đơn hàng thất bại: ${orderErr.message || orderErr.code || 'Lỗi Firebase'}`);
+      }
+
       setOrderInfo({ total: currentFinalTotal, memo: currentMemo });
       setOrderSuccess(paymentMethod);
       clearCart();
-    } catch (err) {
-      toast.error('Đặt hàng thất bại. Vui lòng thử lại.');
+    } catch (err: any) {
+      console.error("CRITICAL ORDER ERROR:", err);
+      // Detailed error for debugging
+      const errorMessage = err?.message || err?.code || JSON.stringify(err);
+      toast.error(`Lỗi hệ thống: ${errorMessage}. Vui lòng kiểm tra quyền truy cập Database.`);
     } finally {
       setLoading(false);
     }

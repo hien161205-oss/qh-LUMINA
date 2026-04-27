@@ -19,9 +19,15 @@ service cloud.firestore {
     function isAdmin() {
       return isSignedIn() && (
         (request.auth.token.email == 'nghyn5851@gmail.com') ||
+        (request.auth.token.email == 'hien161205@gmail.com') ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
       );
+    }
+
+    function isSalesUpdate() {
+      // Allow updating ONLY stock and salesCount
+      return incoming().diff(existing()).affectedKeys().hasOnly(['stock', 'salesCount']);
     }
 
     function isOwner(userId) {
@@ -109,7 +115,7 @@ service cloud.firestore {
       allow get: if isValidId(productId);
       allow list: if true;
       allow create: if isAdmin() && isValidProduct(incoming()) && isValidId(productId);
-      allow update: if isAdmin() && isValidProduct(incoming()) && isValidId(productId);
+      allow update: if (isAdmin() || isSalesUpdate()) && isValidProduct(incoming()) && isValidId(productId);
       allow delete: if isAdmin() && isValidId(productId);
     }
 
