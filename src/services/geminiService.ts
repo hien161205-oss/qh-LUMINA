@@ -1,9 +1,17 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
-const genAI = new GoogleGenerativeAI((process as any).env.GEMINI_API_KEY || "");
-const model = genAI.getGenerativeModel({ 
-  model: "gemini-1.5-flash",
-  systemInstruction: `You are a helpful customer service assistant for Q&H LUMINA, a premium skincare and beauty store.
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const MODEL_NAME = "gemini-3-flash-preview";
+
+export async function getChatResponse(message: string, history: { role: string, parts: { text: string }[] }[]) {
+  try {
+    const contents = [...history, { role: 'user', parts: [{ text: message }] }];
+    
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: contents,
+      config: {
+        systemInstruction: `You are a helpful customer service assistant for Q&H LUMINA, a premium skincare and beauty store.
 Your name is Lumina AI. You are professional, friendly, and knowledgeable about skincare.
 You can help customers with:
 1. Product recommendations based on skin type (oily, dry, sensitive).
@@ -14,21 +22,11 @@ You can help customers with:
 Keep your answers concise and formatted nicely with bullet points if needed.
 Speak in Vietnamese as the primary language.
 If you don't know something specific about an order, ask them to check the tracking page or contact support at contact@qhskinlab.com.`,
-});
-
-export async function getChatResponse(message: string, history: { role: 'user' | 'model', parts: { text: string }[] }[]) {
-  try {
-    const chatSession = model.startChat({
-      history: history,
-      generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 1000,
       },
     });
 
-    const result = await chatSession.sendMessage(message);
-    const response = await result.response;
-    return response.text();
+    return response.text || "Xin lỗi, hiện tại Lumina đang bận một chút. Bạn thử lại sau nhé!";
   } catch (error) {
     console.error("Gemini API Error:", error);
     return "Xin lỗi, hiện tại Lumina AI đang bận một chút hoặc gặp lỗi kết nối. Bạn vui lòng thử lại sau giây lát nhé!";
