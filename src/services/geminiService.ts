@@ -1,10 +1,23 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiInstance: GoogleGenAI | null = null;
+
+function getAI() {
+  if (!aiInstance) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not defined. Please ensure it is set in the environment.");
+    }
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+}
+
 const MODEL_NAME = "gemini-3-flash-preview";
 
 export async function getChatResponse(message: string, history: { role: string, parts: { text: string }[] }[]) {
   try {
+    const ai = getAI();
     const contents = [...history, { role: 'user', parts: [{ text: message }] }];
     
     const response = await ai.models.generateContent({
