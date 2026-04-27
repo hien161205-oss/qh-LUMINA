@@ -3,7 +3,7 @@ import { collection, query, getDocs, orderBy, limit } from 'firebase/firestore';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '../lib/firebase';
 import { Product, Blog } from '../types';
-import { formatPrice } from '../lib/utils';
+import { formatPrice, cn } from '../lib/utils';
 import { useCart } from '../context/CartContext';
 import { Search, SlidersHorizontal, Plus, Zap, ChevronLeft, ChevronRight as ChevronRightIcon, Star, ShoppingBag } from 'lucide-react';
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'motion/react';
@@ -188,17 +188,15 @@ export default function Home() {
         </section>
       )}
 
-      {!searchTerm && (
-        <>
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto mt-6 px-6">
+      {/* Banner Section - Persistent but hidden when searching */}
+      <section className={cn("max-w-7xl mx-auto mt-6 px-6 transition-all duration-300", searchTerm && "opacity-0 h-0 overflow-hidden mt-0")}>
         <div
-          className="relative rounded-[3rem] overflow-hidden bg-gray-50 shadow-2xl shadow-brand-100/20 aspect-[16/7] md:aspect-[21/9] lg:aspect-[21/7]"
+          className="relative rounded-[3rem] overflow-hidden bg-white shadow-2xl shadow-brand-100/20"
         >
           <img 
             src="https://i.ibb.co/qFsR28Fv/Screenshot-2026-04-26-120729.png" 
             alt="3CE Banner"
-            className="w-full h-full object-cover block"
+            className="w-full h-auto block"
             loading="eager"
             fetchPriority="high"
             decoding="sync"
@@ -206,8 +204,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Flash Sale Section */}
-      <section className="max-w-7xl mx-auto px-6 mt-24 md:mt-32">
+      {!searchTerm && (
+        <>
+          {/* Flash Sale Section */}
+          <section className="max-w-7xl mx-auto px-6 mt-24 md:mt-32">
         <div className="bg-brand-50 rounded-[3rem] overflow-hidden shadow-[0_20px_50px_rgba(14,165,233,0.15)] border-2 border-brand-200">
           <div className="bg-gradient-to-r from-brand-600 via-blue-600 to-brand-600 py-6 px-10 flex items-center justify-center space-x-4">
             <Zap className="w-8 h-8 text-yellow-400 fill-current animate-pulse" />

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CartItem, Product } from '../types';
 import { toast } from 'react-hot-toast';
+import { auth } from '../lib/firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 interface CartContextType {
   cart: CartItem[];
@@ -29,34 +31,54 @@ export const useCart = () => {
 };
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('cart');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [wishlist, setWishlist] = useState<Product[]>(() => {
-    try {
-      const saved = localStorage.getItem('wishlist');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
+  const [user, setUser] = useState<User | null>(auth.currentUser);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [wishlist, setWishlist] = useState<Product[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isSwapping, setIsSwapping] = useState(true);
+
+  // Listen for auth changes and swap cart/wishlist
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setIsSwapping(true);
+      setUser(u);
+      
+      const cartKey = u ? `cart_${u.uid}` : 'cart_guest';
+      const wishlistKey = u ? `wishlist_${u.uid}` : 'wishlist_guest';
+      
+      try {
+        const savedCart = localStorage.getItem(cartKey);
+        const parsedCart = savedCart ? JSON.parse(savedCart) : [];
+        setCart(parsedCart);
+        
+        const savedWishlist = localStorage.getItem(wishlistKey);
+        const parsedWishlist = savedWishlist ? JSON.parse(savedWishlist) : [];
+        setWishlist(parsedWishlist);
+      } catch (e) {
+        console.error("Failed to load cart/wishlist from storage", e);
+        setCart([]);
+        setWishlist([]);
+      } finally {
+        // Use timeout to ensure state updates have settled before allowing persistence
+        setTimeout(() => setIsSwapping(false), 50);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  // Persist changes to correct storage key
+  useEffect(() => {
+    if (isSwapping) return;
+    const cartKey = user ? `cart_${user.uid}` : 'cart_guest';
+    localStorage.setItem(cartKey, JSON.stringify(cart));
+  }, [cart, user, isSwapping]);
 
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cart));
-  }, [cart]);
-
-  useEffect(() => {
-    localStorage.setItem('wishlist', JSON.stringify(wishlist));
-  }, [wishlist]);
+    if (isSwapping) return;
+    const wishlistKey = user ? `wishlist_${user.uid}` : 'wishlist_guest';
+    localStorage.setItem(wishlistKey, JSON.stringify(wishlist));
+  }, [wishlist, user, isSwapping]);
 
   const addToCart = (product: Product, silent?: boolean) => {
     const existing = cart.find((item) => item.id === product.id);
