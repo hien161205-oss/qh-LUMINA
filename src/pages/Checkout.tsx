@@ -140,13 +140,14 @@ export default function Checkout() {
         createdAt: serverTimestamp()
       });
 
-      // LƯU Ý: Việc trừ tồn kho nên thực hiện qua Cloud Functions để bảo mật.
-      // Nếu Rules Firebase của bạn chặn User sửa collection 'products', 
-      // đoạn code dưới đây sẽ gây lỗi "Missing Permissions".
-      // cart.forEach(item => {
-      //   const productRef = doc(db, 'products', item.id);
-      //   batch.update(productRef, { stock: increment(-item.quantity) });
-      // });
+      // Tự động trừ tồn kho và tăng lượt bán
+      cart.forEach(item => {
+        const productRef = doc(db, 'products', item.id);
+        batch.update(productRef, { 
+          stock: increment(-item.quantity),
+          salesCount: increment(item.quantity)
+        });
+      });
       
       await batch.commit();
       setOrderInfo({ total: currentFinalTotal, memo: currentMemo });
